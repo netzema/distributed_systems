@@ -38,12 +38,15 @@ class User(Resource):
 
 class Auth(Resource):
     def post(self, name):
-        pw = request.form("password")
+        for username, password in request.form.items():
+            pw = password
         if users[name]["password"] != pw:
+            print("Login failed.")
             return {"success": False, "error_msg": "Wrong username or password."}
         else:
             tk = create_token()
             users[name]["token"] = tk
+            print("Successfully logged in.")
             return {"success": True, "error_msg": ""}
 
 
