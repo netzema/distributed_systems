@@ -1,35 +1,42 @@
 from requests import get, put, delete, post
 
-#%% login admin
-print(get('http://localhost:5000/users/api/admin').json())
-print(post('http://localhost:5000/users/api/session/admin', data={'password':'admin'}))
-print(get('http://localhost:5000/users/api/admin').json())
-
-#%% create user: Welcome on board, Ted! :-)
-print(post('http://localhost:5000/users/api/admin', data={'username': 'Ted', 'password':'somesupersafepassword', 'role': 'manager'}))
-print(get('http://localhost:5000/users/api/Ted').json())
-
-#%% delete user: Ted got fired again :(
-print(get('http://localhost:5000/users/api/Ted').json())
-print(delete('http://localhost:5000/users/api/admin', data = {'username': 'Ted'}))
-print(get('http://localhost:5000/users/api/Ted').json())
-
-#%% hire Ted again, Ted tries to hire Berta, but only admin can do that
-# admin logs in
+print("login admin")
 print(post('http://localhost:5000/users/api/session/admin', data={'password':'admin'}).json())
-print(post('http://localhost:5000/users/api/admin', data={'username': 'Ted','password':'somesupersafepassword', 'role': 'manager'}).json())
-print(get('http://localhost:5000/users/api/Ted').json())
-# Ted logs in
+print("admin data")
+print(get('http://localhost:5000/users/api/admin', data = {'username': 'admin'}).json())
+print("Admin logs out")
+print(put('http://localhost:5000/users/api/session/admin').json())
+print("Logged out admin tries to hire Ted")
+print(post('http://localhost:5000/users/api/admin', data={'username': 'Ted', 'password':'somesupersafepassword', 'role': 'manager'}).json())
+print("Admin logs in again")
+print(post('http://localhost:5000/users/api/session/admin', data={'password':'admin'}).json())
+print("Hire Ted, the manager")
+print(post('http://localhost:5000/users/api/admin', data={'username': 'Ted', 'password':'somesupersafepassword', 'role': 'manager'}).json())
+print("Admin gets infos of Ted")
+print(get('http://localhost:5000/users/api/admin', data={'username': 'Ted'}).json())
+print("Ted logs in")
 print(post('http://localhost:5000/users/api/session/Ted', data={'password':'somesupersafepassword'}).json())
-# Ted tries to hire Berta
+print("Ted gets infos of admin")
+print(get('http://localhost:5000/users/api/Ted', data={'username': 'admin'}).json())
+print("Ted tries to hire Berta, the secretary.")
 print(post('http://localhost:5000/users/api/Ted', data={'username': 'Berta', 'password':'1234', 'role': 'secretary'}).json())
-print(get('http://localhost:5000/users/api/Berta').json())
-# admin hires Berta
+print("Admin gets infos of Berta, the secretary")
+print(get('http://localhost:5000/users/api/admin', data={"username":"Berta"}).json())
+print("Admin hires Berta, the secretary")
 print(post('http://localhost:5000/users/api/admin', data={'username': 'Berta', 'password':'1234', 'role': 'secretary'}).json())
-print(get('http://localhost:5000/users/api/Berta').json())
-# Ted got mad and wants to fire Berta again
+print("Admin accesses Berta's data")
+print(get('http://localhost:5000/users/api/admin', data={"username":"Berta"}).json())
+print("Ted got mad. He wants to fire Berta, the secretary, now.")
 print(delete('http://localhost:5000/users/api/Ted', data = {'username': 'Berta'}).json())
-print(get('http://localhost:5000/users/api/Berta').json())
-# Admin fires Berta again
+print("Admin accesses Berta's data")
+print(get('http://localhost:5000/users/api/admin', data={"username":"Berta"}).json())
+print("Admin agrees with Ted and fires Berta, the secretary now.")
 print(delete('http://localhost:5000/users/api/admin', data = {'username': 'Berta'}).json())
-print(get('http://localhost:5000/users/api/Berta').json())
+print("Admin accesses Berta's data")
+print(get('http://localhost:5000/users/api/admin', data={"username":"Berta"}).json())
+print("Ted logs out")
+print(put('http://localhost:5000/users/api/session/Ted').json())
+print("Ted logs in with wrong password")
+print(post('http://localhost:5000/users/api/session/Ted', data={'password':'somewrongpassword'}).json())
+print("Admin wants to get data from Ted now.")
+print(get('http://localhost:5000/users/api/admin', data={"username":"Ted"}).json())
