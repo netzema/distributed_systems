@@ -88,6 +88,7 @@ class Jobs(Resource):
             job_info["assets"] = assets
             job_info["timestamp"] = datetime.timestamp(datetime.now())
             job_info["daterange"] = str(datetime.now().date()) + "/" + str((datetime.now() + timedelta(days=10)).date())
+            job_info["status"] = "in progress"
 
             # TODO: Needs a better solution, but works for now. What if results dont get added but job does?
             status, id_n = write_json(job_info)
@@ -107,6 +108,11 @@ class Jobs(Resource):
                 return {'success': False, 'msg': "Error job not added"}
 
     def put(self):
+        # authorize
+        tk = request.form["token"]
+        auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "add_job"}).json()
+        logging.info(f'User {request.form["user"]} calls authentication of token for service of adding a job')
+
         # TODO: editing jobs. Whatever that means.
         pass
 

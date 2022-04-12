@@ -43,7 +43,7 @@ while(True):
     if cmd[0] == "delete_user":
         d = delete('http://localhost:5000/users/api/'+cmd[1]).json()
         logging.info(f'User {username} tries to delete user {cmd[1]}')
-        print(d["msg"])
+        print(d["error_msg"])
         continue
 
     if cmd[0] == "add_job":
