@@ -12,8 +12,8 @@ app = Flask(__name__)
 api = Api(app)
 
 users = {"admin": {"password":"admin", "role":"admin"}}
-rights = {"admin": ["add_user", "del_user", "add_job", "edit_job"],
-          "manager": ["add_job", "edit_job"],
+rights = {"admin": ["add_user", "del_user", "add_job", "edit_job", "delete_job"],
+          "manager": ["add_job", "edit_job", "delete_job"],
           "secretary": ["get_users"]}
 
 def check_user(name):
@@ -57,7 +57,7 @@ class User(Resource):
                     return {username: {'username': username, 'role': users[username]['role']}}
             else: # if user does not exist
                 logger.info(f'User {username} not found.')
-                return {'success': False, 'error_msg': f'User {username} not found.'}
+                return {'success': False, 'msg': f'User {username} not found.'}
 
     def put(self, name):
         # update password or username
@@ -70,7 +70,7 @@ class User(Resource):
                     logger.info(f'User {name} changed password.')
                 else:
                     logger.info(f'Password for user {name} was not changed.')
-                    return {'success': False, 'error_msg': 'No update made. Check the input.'}
+                    return {'success': False, 'msg': 'No update made. Check the input.'}
                 return {'success': True, 'msg':'Updated password.'}
             else:
                 logger.info(f'User {name} not logged in.')
@@ -90,7 +90,7 @@ class User(Resource):
                 return {'success': True, 'msg': f'Welcome on board, {username}!'}
             else:
                 logger.info(f'User {name} is not allowed to add new users.')
-                return {'success': False, 'error_msg': 'No authentification for that action.'}
+                return {'success': False, 'msg': 'No authentification for that action.'}
 
     def delete(self, name):
         # only for admins
@@ -104,10 +104,10 @@ class User(Resource):
                     return {"success": True, 'msg': f"You're fired, {username}!"}
                 else:
                     logger.info(f'User {username} not found.')
-                    return {"success": False, "error_msg": f"User {username} not found"}
+                    return {"success": False, "msg": f"User {username} not found"}
             else:
                 logger.info(f'User {name} is not allowed to delete users.')
-                return {'success': False, 'error_msg': 'No authentication for that action.'}
+                return {'success': False, 'msg': 'No authentication for that action.'}
 
 class Login(Resource):
     def post(self, name):
@@ -120,10 +120,10 @@ class Login(Resource):
                 tk = create_token()
                 users[name]["token"] = tk
                 logger.info(f'User {name} signed in.')
-                return {"success": True, "error_msg": "", "token": tk}
+                return {"success": True, "msg": "", "token": tk}
             else:
                 logger.info(f'User {name} tried to sign in but failed.')
-                return {"success": False, "error_msg": "Wrong username or password."}
+                return {"success": False, "msg": "Wrong username or password."}
 
     def put(self, name):
         if check_user(name):
@@ -136,10 +136,10 @@ class Login(Resource):
                     return {'success': True, 'msg': f'User {name} logged out.'}
                 else:
                     logger.info(f'User {name} could not sign out.')
-                    return {'success': False, 'error_msg': f'User {name} not logged in.'}
+                    return {'success': False, 'msg': f'User {name} not logged in.'}
             else:
                 logger.info(f'User {name} not found.')
-                return {'success': False, 'error_msg': 'User not found.'}
+                return {'success': False, 'msg': 'User not found.'}
 
 
 
@@ -157,7 +157,7 @@ class Auth(Resource):
                             return {'success': True} # request access granted
                         else:
                             logger.info(f'User {k} not granted access to {service}.')
-                            return {'success': False, 'error_msg': 'Request denied.'}
+                            return {'success': False, 'msg': 'Request denied.'}
                 else:
                     continue
             else:
@@ -165,7 +165,7 @@ class Auth(Resource):
 
         # if token not found
         logger.info(f'Token not found. Could not perform {service}.')
-        return {'success': False, 'error_msg': 'Token not found.'}
+        return {'success': False, 'msg': 'Token not found.'}
 
 
 

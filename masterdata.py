@@ -62,6 +62,18 @@ def write_results_json(result):
         except:
             return False
 
+def write_update(job):
+    if os.path.isfile("data/masterdata.json") is False:
+        print("File does not exist yet.")
+        return False, -1
+
+    with open("data/masterdata.json", "w") as f:
+        try:
+            json.dump(job, f, indent=4)
+            return True, id
+        except:
+            return False, -1
+
 
 class Jobs(Resource):
     def post(self):
@@ -76,7 +88,7 @@ class Jobs(Resource):
         # calculation API call
         calc = get('http://localhost:8008/jobs/api/calculation', data={"assets": request.form["assets"]}).json()
         logging.info(f'User {request.form["user"]} calls job calculation service with assets {request.form["assets"]}')
-        if 'error_msg' in calc: # if calculation successful
+        if 'msg' in calc: # if calculation successful
             return calc
 
         else:
@@ -110,15 +122,50 @@ class Jobs(Resource):
     def put(self):
         # authorize
         tk = request.form["token"]
-        auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "add_job"}).json()
+        auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "edit_job"}).json()
         logging.info(f'User {request.form["user"]} calls authentication of token for service of adding a job')
+        if auth["success"] == False:
+            return auth  # access denied
 
-        # TODO: editing jobs. Whatever that means.
-        pass
+        job_id = request.form["job_id"]
+        status = request.form["status"]
+        with open("data/masterdata.json", "r") as f:
+            data = json.load(f)
+        if job_id in data:
+            data[job_id]["status"] = status
+            if write_update(data):
+                logging.info(f'User {request.form["user"]} updated the status of job {job_id} to {status}.')
+                return {'success': True, 'msg': f"Status changed to {status}."}
+            else:
+                logging.info(f'User {request.form["user"]} tried to update the status of job {job_id}, but it failed.')
+                return {'success': False, 'msg': f"Error job {job_id} not updated."}
+        else:
+            logging.info(f'User {request.form["user"]} wanted to update non-existing job {job_id}.')
+            return {'success': False, 'msg': f"Error job {job_id} not found."}
+
 
     def delete(self):
-        # TODO: removing jobs. Also remove results, or no?
-        pass
+        # authorize
+        tk = request.form["token"]
+        auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "delete_job"}).json()
+        logging.info(f'User {request.form["user"]} calls authentication of token for service of adding a job')
+        if auth["success"] == False:
+            return auth  # access denied
+
+        job_id = request.form["job_id"]
+        with open("data/masterdata.json", "r") as f:
+            data = json.load(f)
+        if job_id in data:
+            deleted_job = data.pop(job_id)
+            if write_update(data):
+                logging.info(f'User {request.form["user"]} deleted job {deleted_job}.')
+                return {'success': True, 'msg': f"Job {job_id} deleted."}
+            else:
+                logging.info(f'User {request.form["user"]} tried to delete the status of job {job_id}, but it failed.')
+                return {'success': False, 'msg': f"Error job {job_id} not deleted."}
+        else:
+            logging.info(f'User {request.form["user"]} tried to delete non-existing job {job_id}.')
+            return {'success': False, 'msg': f"Error job {job_id} not found."}
 
 
 
@@ -129,10 +176,10 @@ class JobCalculation(Resource):
         assets = [int(i) for i in assets]
 
         if all([not isinstance(item, int) for item in assets]): # check if non-integers
-            return {'success': False, 'error_msg': 'Non-integer values in assets'}
+            return {'success': False, 'msg': 'Non-integer values in assets'}
 
         if any(v > 100 or v < 1 for v in assets): # check if in bounds 1-100
-            return {'success': False, 'error_msg': 'Asset values out of bounds.'}
+            return {'success': False, 'msg': 'Asset values out of bounds.'}
 
         # asset calculations
         assets = dict([(val, round(random.uniform(0, 1), 3)) for val in assets])
