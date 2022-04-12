@@ -1,4 +1,60 @@
 from requests import get, put, delete, post
+import logging
+
+logging.basicConfig(filename='clientlogs.log', filemode='w+', level=logging.INFO)
+
+"""print(get('http://localhost:5000/users/api/admin').json())
+r = post('http://localhost:5000/users/api/session/admin', data={'password':'admin'})
+print(r.json()["success"])
+print(get('http://localhost:5000/users/api/admin').json())"""
+
+
+print("Please log in...")
+while(True):
+    name = input("Username: ")
+    password = input("Password: ")
+    user = get('http://localhost:5000/users/api/'+name).json()
+
+    if 'success' in user:
+        print(user["error_msg"])
+        continue
+
+    r = post('http://localhost:5000/users/api/session/'+name, data={'password': password}).json()
+    if r["success"] == True:
+        tk = r["token"]
+        print(r["error_msg"])
+        user = get('http://localhost:5000/users/api/'+name).json()
+        break
+
+    print("Username or password incorrect. Try again")
+
+while(True):
+    print("\n\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nrun_job\nget_all_jobs\nget_all_results\n")
+    cmd = input(">> ").split()
+    print(cmd)
+    if cmd[0] == "add_user":
+        r = post('http://localhost:5000/users/api/'+name, data={'username' : cmd[1], 'role': cmd[2], 'password': cmd[3]}).json()
+        print(r["msg"])
+        continue
+
+    if cmd[0] == "delete_user":
+        d = delete('http://localhost:5000/users/api/'+cmd[1]).json()
+        print(d["msg"])
+        continue
+
+    if cmd[0] == "add_job":
+        assets = input("Give asset integers")
+        u = post('http://localhost:8008/jobs/api/job', data={"user":name, "assets": assets, "token": tk}).json()
+        logging.info(f'User {name} tries to add a job with parameters "user":{name}, "assets": {assets}')
+        if u["success"] == False:
+            print(u["error_msg"])
+            continue
+
+        print(u["msg"])
+
+
+
+"""        
 print("login admin")
 print(post('http://localhost:5000/users/api/session/admin', data={'password':'admin'}).json())
 print("admin data")
@@ -49,3 +105,4 @@ print('Ted wants to change his password.')
 print(put('http://localhost:5000/users/api/Ted', data={'new_password': 'superhotnewpassword'}).json())
 print("Admin wants to get data from Ted now.")
 print(get('http://localhost:5000/users/api/admin', data={"username":"Ted"}).json())
+"""

@@ -1,11 +1,17 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
 import random
+import logging
+
+logging.basicConfig(filename='authlogs.log', filemode='w+', level=logging.INFO)
 
 app = Flask(__name__)
 api = Api(app)
 
 users = {"admin": {"password":"admin", "role":"admin"}}
+rights = {"admin": ["add_user", "del_user", "add_job", "edit_job"],
+          "manager": ["add_job", "edit_job"],
+          "secretary": ["get_users"]}
 
 def check_user(name):
     if name not in users:
@@ -85,17 +91,20 @@ class User(Resource):
             else:
                 return {'success': False, 'error_msg': 'No authentication for that action.'}
 
-class Auth(Resource):
+class Login(Resource):
     def post(self, name):
         if check_user(name):
             # login with password and username
             for username, password in request.form.items():
                 pw = password
+
             if users[name]["password"] == pw:
                 tk = create_token()
                 users[name]["token"] = tk
-                return {"success": True, "error_msg": ""}
+                logging.info(f'User {name} signed in')
+                return {"success": True, "error_msg": "", "token": tk}
             else:
+                logging.info(f'User {name} tried to sign in but failed.')
                 return {"success": False, "error_msg": "Wrong username or password."}
 
     def put(self, name):
@@ -111,8 +120,32 @@ class Auth(Resource):
             else:
                 return {'success': False, 'error_msg': 'User not found.'}
 
+
+
+class Auth(Resource):
+    def get(self):
+        token = request.form["token"]
+        service = request.form["service"]
+
+        for k in users.keys():
+            if "token" in users[k].keys():
+                if users[k]["token"] == token: # check if token exists
+                    if users[k]["role"] in rights:
+                        if service in rights[users[k]["role"]]:
+                            return {'success': True} # request access granted
+                else:
+                    continue
+            else:
+                continue
+
+        # if token not found
+        return {'success': False, 'error_msg': 'Request denied.'}
+
+
+
 api.add_resource(User, '/users/api/<string:name>')
-api.add_resource(Auth, '/users/api/session/<string:name>')
+api.add_resource(Login, '/users/api/session/<string:name>')
+api.add_resource(Auth, '/users/api/session/auth')
 
 if __name__ == '__main__':
     app.run(debug=True)
