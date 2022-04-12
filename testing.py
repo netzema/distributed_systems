@@ -14,16 +14,18 @@ while(True):
     name = input("Username: ")
     password = input("Password: ")
     user = get('http://localhost:5000/users/api/'+name).json()
+    username = list(user.items())[0][0]
+    logging.info(f'User {username} checks if username exists')
 
     if 'success' in user:
         print(user["error_msg"])
         continue
 
     r = post('http://localhost:5000/users/api/session/'+name, data={'password': password}).json()
+    logging.info(f'User {username} tries to log in')
     if r["success"] == True:
         tk = r["token"]
         print(r["error_msg"])
-        user = get('http://localhost:5000/users/api/'+name).json()
         break
 
     print("Username or password incorrect. Try again")
@@ -33,19 +35,21 @@ while(True):
     cmd = input(">> ").split()
     print(cmd)
     if cmd[0] == "add_user":
-        r = post('http://localhost:5000/users/api/'+name, data={'username' : cmd[1], 'role': cmd[2], 'password': cmd[3]}).json()
+        r = post('http://localhost:5000/users/api/'+username, data={'username' : cmd[1], 'role': cmd[2], 'password': cmd[3]}).json()
+        logging.info(f'User {username} tries to add user with metadata: username : {cmd[1]}, role: {cmd[2]}, password: {cmd[3]}')
         print(r["msg"])
         continue
 
     if cmd[0] == "delete_user":
         d = delete('http://localhost:5000/users/api/'+cmd[1]).json()
+        logging.info(f'User {username} tries to delete user {cmd[1]}')
         print(d["msg"])
         continue
 
     if cmd[0] == "add_job":
         assets = input("Give asset integers")
-        u = post('http://localhost:8008/jobs/api/job', data={"user":name, "assets": assets, "token": tk}).json()
-        logging.info(f'User {name} tries to add a job with parameters "user":{name}, "assets": {assets}')
+        u = post('http://localhost:8008/jobs/api/job', data={"user":username, "assets": assets, "token": tk}).json()
+        logging.info(f'User {username} tries to add a job with parameters "user":{username}, "assets": {assets}')
         if u["success"] == False:
             print(u["error_msg"])
             continue

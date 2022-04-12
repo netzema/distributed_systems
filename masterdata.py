@@ -69,11 +69,13 @@ class Jobs(Resource):
         # authorize
         tk = request.form["token"]
         auth = get('http://localhost:5000/users/api/session/auth', data={"token":tk, "service": "add_job"}).json()
+        logging.info(f'User {request.form["user"]} calls authentication of token for service of adding a job')
         if auth["success"] == False:
             return auth # access denied
 
         # calculation API call
         calc = get('http://localhost:8008/jobs/api/calculation', data={"assets": request.form["assets"]}).json()
+        logging.info(f'User {request.form["user"]} calls job calculation service with assets {request.form["assets"]}')
         if 'error_msg' in calc: # if calculation successful
             return calc
 
