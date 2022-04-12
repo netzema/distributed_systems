@@ -2,28 +2,15 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from datetime import datetime, timedelta
 import json
+import logging
 import os
 import random
-from requests import get, put, delete, post
-import logging
+from requests import get
 
 logging.basicConfig(filename='masterlogs.log', filemode='w+', level=logging.INFO)
 
 app = Flask(__name__)
 api = Api(app)
-
-def get_id():
-    with open("data/masterdata.json", "r") as f:
-        obj = json.load(f)
-        id = int(max(obj.keys())) + 1
-
-    return id
-
-
-def edit_json(job):
-    if os.path.isfile("data/masterdata.json") is False:
-        return {'success': False, 'msg': "No job records"}
-
 
 def write_json(job):
     if os.path.isfile("data/masterdata.json") is False:

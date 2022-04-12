@@ -1,70 +1,40 @@
-Assignment 2: Service Oriented Architectures
-Web services and REST
+## **Assignment 2: Service Oriented Architectures**
+**Web services and REST**
+
 Recall Assignment 1 and the architecture diagram you designed. We now want to start implementing the
-system and write Python modules for some of the services. For each service, you have to build only a part of
-the functionality, which is specified in the service description below. The main focus will be on defining and
-implementing the interfaces that each service exposes:
-1. Authentication service: this service will be responsible for authenticating and logging users into the
-system. The following user groups (roles) are defined:
+system and write Python modules for some of the services. For each service, you must build only a part of
+the functionality, which is specified in the service description below. The focus will be on defining and
+implementing the interfaces that each service exposes.
 
-• Administrator: can create and delete users and manage all types of data.
+### **1 Authentication Service**
+The auth.py file takes care of the whole authorization process. It stores the users in an in-memory cache and assigns user rights to each role. Several functions are implemented to test if users exist, to create authentication tokens, to check if a user's token is valid and if their role allows accessing a certain service.
 
-• Secretary: can manage some data.
+#### **Resources**
+The file defines three resources: User, Login, Auth.
 
-• Manager: can submit optimization requests (batch jobs) and collect results.
+**User**
+The User resource has a get, post, put and delete method. A user calls get in case he/she wants to access information of another user in the system. Depending on the role one gets varying results. The admin can access all the information also including the password. Other roles cannot see the password of each user. put is used to update a user's password while post is used to add new users. The delete method is used to delete an existing user. Note that only administrators can use the latter two services.
 
-The service will expose an authentication API with the following functions:
+**Login**
+The Login resource handles log ins and log outs. For logging in it uses the post method and creates and assigns a token to a given user if the username and password match. The put method is used to log out again, resetting the token.
 
-• A function that accepts username/password and, if correct, emits a simple token (containing user
-role and a random base-64 string).
+**Auth**
+The Auth resource is used to handle authentication for each service call. It uses the get method to retrieve the token and the service and checks for each user in the in-memory cache if it can find the match of given username and token.
 
-• A function for verifying that the token for a given user is still valid.
+### **2 Masterdata Service**
+The Masterdata service handles all kind of jobs, calculations, and database calls. It contains two different resources: Jobs and JobCalulcation. Additionally, it contains several functions to write jobs and results to json files which serve as a persistent data storage. 
+#### **Resources**
+**Jobs**
+Before performing any operation, the authorization service is called to check if the user is allowed to call the service. The post method is used to add a new job to the data storage, do the calculations and store the results in a separate json file. The job information contains the user, the assets (integer from 0 to 100), the timestamp of the creation of the job, the daterange which is 10 days by default and the status, which is "in progress" by default. This information is then stored in the file masterdata.json which contains all the jobs. The results of the calculations of the jobs are stored separately in the results.json file. 
+The put method lets the user update the status of the job. It accesses a job by the given job id and adjusts the status according to the input. 
+The delete method deletes a job from the masterdata.json file by accessing the job by the given id.
 
-This service will be implemented with an in-memory cache (without persistent storage).
+**JobCalculation**
+This resource returns the results of the calculations of each of a job's assets. The results are numbers between 0 and 1. 
 
-2. Master data service: this service will be responsible for the metadata for the simulations and manage
-at least two data tables in a persistent data store:
+### **3 Testing Service**
+The testing service provides simple workflows to test our program. This was made to make sure every functionality can be tested before submitting the program and to provide the professor with an idea of how to use it.
 
-• jobs: a table containing metadata information for each submitted simulation job (user who sent
-the job, timestamp submitted, status (submitted, processing, done), date range, assets (a collection
-of integers from 1 until 100))
-
-• results: a table containing metadata information for the result of each job (job ID, timestamp,
-assets/weights (a collection of pairs asset number/a real number between 0.0 and 1.0))
-
-The service will expose an API for submitting jobs and fetching and updating data on running or done
-jobs. Note that only users of the user group managers and administrators are allowed to use this service.
-
-All other users and unauthenticated users will get an authorization error.
-
-Deadline: 2021/04/05, 23:59 CET.
-
-Notes
-
-• All files shall be submitted in a single zip file.
-
-• A README.MD file will also be included in the submission with a short description of the sumitted files.
-
-• You may build a simple web UI for testing - since UI development is out of the scope of the course, it
-will not be graded.
-
-• Every request performed by a client and all server responses must be logged with the following information: source, destination, headers (if applicable), metadata (if applicable), message body.
-
-• You have free choice as to what web service/communication framework to use for each service: please
-explain your choice in the README.MD file.
-
-• Don’t spend much time on the business logic: please focus on setting up the services, APIs between
-services and logging.
-
-Distributed Systems
-
-SS 2022
-
-Assessment
-
-Total: 15 points.
-
-• All requirements are satisfied: 10 points.
-
-• The documentation is concise and the choice on which web service/framework was used is well explained
-and technically correct: 5 points
+### **4 Flask-RESTful**
+Flask-RESTful is an easy to use and lightweight framework in Python to build REST-APIs. The main building block of the package are resources which provide easy access to multiple HTTP methods just by defining methods on a resource. Additionally, one can easily implement multiple URLs to be routed to a resource by using the add_resource() method on the API object. Another advantage of Flask-RESTful is its thorough documentation which covers everything one needs to get started. 
+REST in general has several upsides over SOAP or GRPC. REST is flexible and uses simple verbs for its operations, which makes it simple to use and understand. JSON is the most common content type for REST data, which is straightforward to use, quite human readable and easy to debug. Other than the technical advantages, we also already gained some experience with Flask back in the Programming II course in the second semester.
