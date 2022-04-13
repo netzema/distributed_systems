@@ -5,17 +5,17 @@ logging.basicConfig(filename='clientlogs.log', filemode='w+', level=logging.INFO
 
 print("Please log in...")
 while(True):
-    name = input("Username: ")
+    username = input("Username: ")
     password = input("Password: ")
-    user = get('http://localhost:5000/users/api/'+name).json()
-    username = list(user.items())[0][0]
+    #user = get('http://localhost:5000/users/api/'+name).json()
+    #username = list(user.items())[0][0]
     logging.info(f'User {username} checks if username exists')
 
-    if 'success' in user:
-        print(user["msg"])
-        continue
+    #if 'success' in user:
+    #    print(user["msg"])
+    #    continue
 
-    r = post('http://localhost:5000/users/api/session/'+name, data={'password': password}).json()
+    r = post('http://localhost:5000/users/api/session/'+username, data={'password': password}).json()
     logging.info(f'User {username} tries to log in')
     if r["success"] == True:
         tk = r["token"]
@@ -36,7 +36,7 @@ while(True):
         continue
 
     if cmd[0] == "delete_user":
-        d = delete('http://localhost:5000/users/api/'+cmd[1]).json()
+        d = delete('http://localhost:5000/users/api/'+username, data={'username': cmd[1]}).json()
         logging.info(f'User {username} tries to delete user {cmd[1]}')
         print(d["msg"])
         continue
