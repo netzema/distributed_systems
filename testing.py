@@ -19,24 +19,24 @@ while(True):
     logging.info(f'User {username} tries to log in')
     if r["success"] == True:
         tk = r["token"]
-        print(r["msg"])
+        print("Login successful.")
         break
 
     print("Username or password incorrect. Try again")
 
 while(True):
-    print("\n\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nadd_job\n"
-          "get_all_jobs\nget_all_results\nedit_job\ndelete_job")
+    print("\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nadd_job\n"
+          "edit_job\ndelete_job\nchange_password *new_password*\nlog_out\nlog_in")
     cmd = input(">> ").split()
     print(cmd)
     if cmd[0] == "add_user":
-        r = post('http://localhost:5000/users/api/'+username, data={'username' : cmd[1], 'role': cmd[2], 'password': cmd[3]}).json()
+        r = post('http://localhost:5000/users/api/'+username, data={'username' : cmd[1], 'role': cmd[2], 'password': cmd[3], "token": tk}).json()
         logging.info(f'User {username} tries to add user with metadata: username : {cmd[1]}, role: {cmd[2]}, password: {cmd[3]}')
         print(r["msg"])
         continue
 
     if cmd[0] == "delete_user":
-        d = delete('http://localhost:5000/users/api/'+username, data={'username': cmd[1]}).json()
+        d = delete('http://localhost:5000/users/api/'+username, data={'username': cmd[1], "token": tk}).json()
         logging.info(f'User {username} tries to delete user {cmd[1]}')
         print(d["msg"])
         continue
@@ -73,3 +73,29 @@ while(True):
             continue
         logging.info(f'User {username} deleted job {job_id}.')
         print(u["msg"])
+
+    if cmd[0] == "change_password":
+        r = put('http://localhost:5000/users/api/'+username, data={"new_password": cmd[1]}).json()
+        if r["success"]:
+            print(r["msg"])
+            logging.info(f'User {username} changed password.')
+        logging.info(f'User {username} did not change password.')
+        print(r["msg"])
+
+    if cmd[0] == "log_out":
+        r = put('http://localhost:5000/users/api/session/'+username).json()
+        if r["success"]:
+            print(r["msg"])
+            logging.info(f'User {username} logged out.')
+        logging.info(f'User {username} did not log out.')
+        print(r["msg"])
+
+    if cmd[0] == "log_in":
+        username = input("Username: ")
+        password = input("Password: ")
+        r = post('http://localhost:5000/users/api/session/'+username, data={'password': password}).json()
+        if r["success"]:
+            print(r["msg"])
+            logging.info(f'User {username} logged in.')
+        logging.info(f'User {username} did not log in.')
+        print(r["msg"])

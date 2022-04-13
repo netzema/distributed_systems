@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 import logging
 import random
+from requests import get
 
 logging.basicConfig(filename='authlogs.log', format='%(asctime)s %(message)s', filemode='w', level=logging.INFO)
 
@@ -12,9 +13,13 @@ app = Flask(__name__)
 api = Api(app)
 
 users = {"admin": {"password":"admin", "role":"admin"}}
-rights = {"admin": ["add_user", "del_user", "add_job", "edit_job", "delete_job"],
-          "manager": ["add_job", "edit_job", "delete_job"],
-          "secretary": ["get_users"]}
+rights = {"admin": ["add_user", "delete_user", "add_job", "edit_job", "delete_job", "change_password", "log_out",
+                    "log_in"],
+          "manager": ["add_job", "edit_job", "delete_job", "change_password", "log_out", "log_in"],
+          "secretary": ["get_users", "change_password", "log_out", "log_in"]}
+
+print("\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nadd_job\n"
+      "edit_job\ndelete_job\nchange_password\nlog_out\nlog_in")
 
 def check_user(name):
     # check if user exists
@@ -39,6 +44,7 @@ def validate_access(name):
     # returns role if token is valid
     if check_token(name): # if token not empty
         logger.info(f'Token for user {name} is valid.')
+
         return users[name]["role"] # return role
 
 class User(Resource):
@@ -80,6 +86,10 @@ class User(Resource):
     def post(self, name):
         # add new users; only for admins
         # check if user is an admin
+        tk = request.form["token"]
+        auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "add_user"}).json()
+        if auth["success"] == False:
+            return auth # access denied
         if validate_access(name) == 'admin':
             # store information of new user
             user_information = {}
@@ -97,6 +107,10 @@ class User(Resource):
     def delete(self, name):
         # delete an existing user; only for admins
         # check if user is admin
+        tk = request.form["token"]
+        auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "delete_user"}).json()
+        if auth["success"] == False:
+            return auth # access denied
         if validate_access(name) == 'admin':
             username = request.form["username"]
             # if user to be deleted exists
