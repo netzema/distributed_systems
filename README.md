@@ -34,6 +34,13 @@ This resource returns the results of the calculations of each of a job's assets.
 
 ### **3 Testing Service**
 The testing service provides simple workflows to test our program. This was made to make sure every functionality can be tested before submitting the program and to provide the professor with an idea of how to use it.
+Example workflow:
+-> start APIs auth.py and masterdata.py
+-> start testing.py
+-> You are asked to sign in. Login with username "admin" and password "admin"
+Then you can add new users with "add_user <username> <role> <password>" and pressing enter. You can open testing.py in another terminal
+and log in with created users and try out given commands with both admin account and newly created ones. 
+
 
 ### **4 Flask-RESTful**
 Flask-RESTful is an easy to use and lightweight framework in Python to build REST-APIs. The main building block of the package are resources which provide easy access to multiple HTTP methods just by defining methods on a resource. Additionally, one can easily implement multiple URLs to be routed to a resource by using the add_resource() method on the API object. Another advantage of Flask-RESTful is its thorough documentation which covers everything one needs to get started. 

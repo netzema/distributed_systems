@@ -7,7 +7,7 @@ import os
 import random
 from requests import get
 
-logging.basicConfig(filename='masterlogs.log', filemode='w+', level=logging.INFO)
+logging.basicConfig(filename='masterlogs.log', filemode='a+', level=logging.INFO)
 
 app = Flask(__name__)
 api = Api(app)
@@ -98,7 +98,7 @@ class Jobs(Resource):
                 result_info["results"] = calc
 
                 if write_results_json(result_info):
-                    return {'success': True, 'msg': "results added"}
+                    return {'success': True, 'msg': "Job and results added to tables."}
                 else:
                     return {'success': False, 'msg': "Error results not added"}
 
@@ -157,6 +157,7 @@ class Jobs(Resource):
 
 
 class JobCalculation(Resource):
+    # service calculates weights for assets
     def get(self):
         # get request assets
         assets = request.form["assets"].split(",")

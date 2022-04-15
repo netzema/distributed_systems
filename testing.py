@@ -1,36 +1,38 @@
+from requests import put, delete, post
 import logging
-from requests import get, put, delete, post
 
-logging.basicConfig(filename='clientlogs.log', filemode='w+', level=logging.INFO)
+logging.basicConfig(filename='clientlogs.log', filemode='a+', level=logging.INFO)
 
 print("Please log in...")
 while(True):
     username = input("Username: ")
     password = input("Password: ")
-    #user = get('http://localhost:5000/users/api/'+name).json()
-    #username = list(user.items())[0][0]
-    logging.info(f'User {username} checks if username exists')
-
-    #if 'success' in user:
-    #    print(user["msg"])
-    #    continue
 
     r = post('http://localhost:5000/users/api/session/'+username, data={'password': password}).json()
     logging.info(f'User {username} tries to log in')
-    if r["success"] == True:
+    if r["success"]:  # successful, save token as "tk" and break from login loop
         tk = r["token"]
-        print("Login successful.")
+        print(r["msg"])
         break
+    else:
+        print(r["msg"])
 
-    print("Username or password incorrect. Try again")
-
+# main loop for calling commands
+print(10*'*'+'\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nadd_job\n'
+      'edit_job\ndelete_job\nquit\n'+10*'*')
 while(True):
-    print("\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nadd_job\n"
-          "edit_job\ndelete_job\nchange_password *new_password*\nlog_out\nlog_in")
     cmd = input(">> ").split()
-    print(cmd)
+
+    # ALL COMMANDS
+    # Adding user
     if cmd[0] == "add_user":
-        r = post('http://localhost:5000/users/api/'+username, data={'username' : cmd[1], 'role': cmd[2], 'password': cmd[3], "token": tk}).json()
+        if len(cmd) != 4:  # if not correct amount of parameters
+            print("Make sure you give all parameters. Name, role, password")
+            continue
+
+        r = post('http://localhost:5000/users/api/'+username, data={'username': cmd[1],'role': cmd[2],
+                                                                    'password': cmd[3], 'token': tk}).json()
+
         logging.info(f'User {username} tries to add user with metadata: username : {cmd[1]}, role: {cmd[2]}, password: {cmd[3]}')
         print(r["msg"])
         continue
@@ -48,7 +50,6 @@ while(True):
         if u["success"] == False:
             print(u["msg"])
             continue
-
         print(u["msg"])
 
     if cmd[0] == "edit_job":
@@ -74,28 +75,6 @@ while(True):
         logging.info(f'User {username} deleted job {job_id}.')
         print(u["msg"])
 
-    if cmd[0] == "change_password":
-        r = put('http://localhost:5000/users/api/'+username, data={"new_password": cmd[1]}).json()
-        if r["success"]:
-            print(r["msg"])
-            logging.info(f'User {username} changed password.')
-        logging.info(f'User {username} did not change password.')
-        print(r["msg"])
-
-    if cmd[0] == "log_out":
-        r = put('http://localhost:5000/users/api/session/'+username).json()
-        if r["success"]:
-            print(r["msg"])
-            logging.info(f'User {username} logged out.')
-        logging.info(f'User {username} did not log out.')
-        print(r["msg"])
-
-    if cmd[0] == "log_in":
-        username = input("Username: ")
-        password = input("Password: ")
-        r = post('http://localhost:5000/users/api/session/'+username, data={'password': password}).json()
-        if r["success"]:
-            print(r["msg"])
-            logging.info(f'User {username} logged in.')
-        logging.info(f'User {username} did not log in.')
-        print(r["msg"])
+    if cmd[0] == "quit":
+        print("Bye!")
+        break
