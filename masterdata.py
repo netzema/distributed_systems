@@ -13,6 +13,8 @@ app = Flask(__name__)
 api = Api(app)
 
 def write_json(job):
+    if not os.path.isdir("data"):
+        os.mkdir("data")
     if os.path.isfile("data/masterdata.json") is False:
         with open("data/masterdata.json", "w") as f:
             json.dump({0: job}, f, indent=4)
@@ -32,6 +34,8 @@ def write_json(job):
 
 
 def write_results_json(result):
+    if not os.path.isdir("data"):
+        os.mkdir("data")
     if os.path.isfile("data/results.json") is False:
         with open("data/results.json", "w") as f:
             json.dump({0: result}, f, indent=4)
@@ -50,6 +54,8 @@ def write_results_json(result):
             return False
 
 def write_update(job):
+    if not os.path.isdir("data"):
+        os.mkdir("data")
     if os.path.isfile("data/masterdata.json") is False:
         print("File does not exist yet.")
         return False, -1
