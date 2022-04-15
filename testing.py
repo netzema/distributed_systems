@@ -65,7 +65,7 @@ while(True):
         print(u["msg"])
 
     if cmd[0] == "delete_job":
-        job_id = input("Enter id of job to change: ")
+        job_id = input("Enter id of job to delete: ")
         u = delete('http://localhost:8008/jobs/api/job',
                  data={"user": username, "job_id": job_id, "token": tk}).json()
         if u["success"] == False:
