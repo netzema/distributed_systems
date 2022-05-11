@@ -45,7 +45,7 @@ while(True):
 
     if cmd[0] == "add_job":
         assets = input("Give asset integers: ")
-        u = post('http://localhost:8008/jobs/api/job', data={"user":username, "assets": assets, "token": tk}).json()
+        u = post('http://localhost:7500/queues/api/queue', data={"user":username, "assets": assets, "token": tk}).json()
         logging.info(f'User {username} tries to add a job with parameters "user":{username}, "assets": {assets}')
         if u["success"] == False:
             print(u["msg"])

@@ -11,9 +11,10 @@ app = Flask(__name__)
 api = Api(app)
 
 users = {"admin": {"password": "admin", "role": "admin"}}
-rights = {"admin": ["add_user", "del_user", "add_job", "edit_job", "delete_job"],
-          "manager": ["add_job", "edit_job", "delete_job"],
-          "secretary": ["get_users"]}
+rights = {"admin": ["add_user", "del_user", "add_job", "edit_job", "delete_job", "create_queue", "pull_job"],
+          "manager": ["add_job", "edit_job", "delete_job", "pull_job"],
+          "secretary": ["get_users", "pull_job"],
+          "worker": ["pull_job"]}
 
 
 def check_user(name):
