@@ -95,8 +95,8 @@ class Jobs(Resource):
             job_info["daterange"] = str(datetime.now().date()) + "/" + str((datetime.now() + timedelta(days=10)).date())
             job_info["status"] = "in progress"
 
-            # TODO: Needs a better solution, but works for now. What if results dont get added but job does?
             status, id_n = write_json(job_info)
+
             if status:
                 result_info = {}
                 result_info["id"] = id_n

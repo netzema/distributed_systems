@@ -1,4 +1,4 @@
-from requests import put, delete, post
+from requests import get, put, delete, post
 import logging
 
 logging.basicConfig(filename='clientlogs.log', filemode='a+', level=logging.INFO)
@@ -19,7 +19,7 @@ while(True):
 
 # main loop for calling commands
 print(10*'*'+'\nAvailable commands:\nadd_user *name* *role* *password*\ndelete_user *name*\nadd_job\n'
-      'edit_job\ndelete_job\nquit\n'+10*'*')
+      'edit_job\ndelete_job\nquit\ncreate_queue\ndelete_queue\npull_job'+10*'*')
 while(True):
     cmd = input(">> ").split()
 
@@ -45,7 +45,9 @@ while(True):
 
     if cmd[0] == "add_job":
         assets = input("Give asset integers: ")
-        u = post('http://localhost:7500/queues/api/queue', data={"user":username, "assets": assets, "token": tk}).json()
+        l = len(get("http://localhost:7500/queues/api/manage")["Active queues"])
+        q = input(f"Please enter queue index (0 - {l-1}): ")
+        u = post('http://localhost:7500/queues/api/queue', data={"user":username, "assets": assets, "token": tk, "queue": q}).json()
         logging.info(f'User {username} tries to add a job with parameters "user":{username}, "assets": {assets}')
         if u["success"] == False:
             print(u["msg"])
