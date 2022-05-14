@@ -45,8 +45,8 @@ while(True):
 
     if cmd[0] == "add_job":
         assets = input("Give asset integers: ")
-        l = len(get("http://localhost:7500/queues/api/manage")["Active queues"])
-        q = input(f"Please enter queue index (0 - {l-1}): ")
+        l = len(get("http://localhost:7500/queues/api/manage").json()["msg"])
+        q = int(input(f"Please enter queue index (0 - {l-1}): "))
         u = post('http://localhost:7500/queues/api/queue', data={"user":username, "assets": assets, "token": tk, "queue": q}).json()
         logging.info(f'User {username} tries to add a job with parameters "user":{username}, "assets": {assets}')
         if u["success"] == False:
@@ -80,3 +80,33 @@ while(True):
     if cmd[0] == "quit":
         print("Bye!")
         break
+
+    if cmd[0] == "create_queue":
+        u = post('http://localhost:7500/queues/api/manage',
+                 data={"user": username, "token": tk}).json()
+        if u["success"]:
+            logging.info(f"User {username} added a new queue.")
+        print(u["msg"])
+
+    if cmd[0] == "delete_queue":
+        l = len(get("http://localhost:7500/queues/api/manage").json()["msg"])
+        q = int(input(f"Please enter queue index (0 - {l - 1}): "))
+        u = delete('http://localhost:7500/queues/api/manage',
+                 data={"user": username, "token": tk, "queue": q}).json()
+        if u["success"]:
+            logging.info(f"User {username} deleted queue {q}.")
+        print(u["msg"])
+
+    if cmd[0] == "get_queues":
+        u = get('http://localhost:7500/queues/api/manage').json()
+        if u["success"]:
+            logging.info(f"User {username} requested all queues.")
+        print(u["msg"])
+
+    if cmd[0] == "pull_job":
+        l = len(get("http://localhost:7500/queues/api/manage").json()["msg"])
+        q = int(input(f"Please enter queue index (0 - {l - 1}): "))
+        u = get('http://localhost:7500/queues/api/queue', data={"username": username, "token": tk, "queue": q}).json()
+        if u["success"]:
+            logging.info(f"User {username} pulled job from queue {q}")
+        print(u["msg"])
