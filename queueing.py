@@ -5,6 +5,10 @@ from datetime import datetime, timedelta
 from masterdata import *
 import os
 from requests import get
+import logging
+
+logging.basicConfig(filename='queue_logs.log', format='%(asctime)s %(message)s', filemode='a+', level=logging.INFO)
+logger = logging.getLogger()
 
 app = Flask(__name__)
 api = Api(app)
@@ -50,10 +54,14 @@ class Queue(Resource):
 
                 _, job_id = write_json(job_info)
                 q.append({job_id: job_info}) # store job_id
+                logger.info(f'Job {job_id} added to queue {loc}.')
                 return {"success": True, "msg": f"Job {job_id} successfully added to queue {loc}."}
 
             else:
+                logger.info(f'Job was attempted to be added to a full queue {loc}.')
                 return {"success": False, "msg": f"Queue {loc} is full! Please choose another one."}
+
+        logger.info(f'Queue {loc} was not found.')
         return {"success": False, "msg": f"Queue {loc} not found. Nr. of active queues is {len(active_queues)}."}
 
     def get(self):
@@ -66,7 +74,9 @@ class Queue(Resource):
         if check_len(active_queues, loc):
             q = active_queues[loc]
             job = q.pop(0)
+            logger.info(f'Job {job} was popped from queue {loc}.')
             return {"success": True, "msg": job}
+        logger.info(f'Queue {loc} was attempted to be accessed but not found.')
         return {"success": False, "msg": f"Queue {loc} not found. Nr. of active queues is {len(active_queues)}."}
 
 class QManager(Resource):
@@ -80,7 +90,9 @@ class QManager(Resource):
         auth = get('http://localhost:5000/users/api/session/auth', data={"token": tk, "service": "create_queue"}).json()
         if auth["success"] == False:
             return auth  # access denied
+
         active_queues.append([])
+        logger.info(f'Queue in position {len(active_queues)-1} was added.')
         return {"success": True, "msg":f"Queue added at position {len(active_queues)-1}."}
         #else:
         #    return {"success": False, "msg":"Queue already exists."}
@@ -107,8 +119,11 @@ class QManager(Resource):
                 write_update(data)
                 if len(active_queues) == 0:
                     active_queues.append([])
+
+                logger.info(f'Queue {loc} was deleted.')
                 return {"success": True, "msg":f"Queue {loc} deleted."}
 
+        logger.info(f'Queue {loc} was attempted to be deleted but not found.')
         return {"success": False, "msg": f"Queue {loc} not found. Nr. of active queues is {len(active_queues)}."}
 
 api.add_resource(Queue, '/queues/api/queue')
