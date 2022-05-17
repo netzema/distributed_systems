@@ -1,4 +1,6 @@
 import configparser
+from time import sleep
+
 from flask import Flask, request
 from flask_restful import Resource, Api
 from datetime import datetime, timedelta
@@ -6,6 +8,8 @@ from masterdata import *
 import os
 from requests import get
 import logging
+from threading import Thread
+import pickle
 
 logging.basicConfig(filename='queue_logs.log', format='%(asctime)s %(message)s', filemode='a+', level=logging.INFO)
 logger = logging.getLogger()
@@ -13,22 +17,38 @@ logger = logging.getLogger()
 app = Flask(__name__)
 api = Api(app)
 
+
+def save_queues(queues, timer):
+    while True:
+        sleep(timer)
+        with open("data/queues.json", "w") as f:
+            json.dump(queues, f, indent=4)
+        logger.info('Saved queues to persistent storage.')
+
+
 if os.path.isfile("config.ini"):
     config_file = configparser.ConfigParser()
     # READ CONFIG FILE
     config_file.read("config.ini")
     maxqlength = int(config_file['QueueSettings']["maxqlength"])
+    timer = int(config_file['QueueSettings']["timer"])
 else:
-    print("No configurations file found! Default queue length = 8.")
+    print("No configurations file found! Default queue length = 8, save timer = 30")
     maxqlength = 8
+    timer = 30
 
 def check_len(active_queues, location):
     if location >= len(active_queues):
         return False
     return True
 
-default_queue = []
-active_queues = [default_queue]
+if os.path.isfile("data/queues.json"):
+    with open("data/queues.json", "r") as f:
+        active_queues = json.load(f)
+else:
+    default_queue = []
+    active_queues = [default_queue]
+
 
 class Queue(Resource):
     def post(self):
@@ -132,4 +152,8 @@ api.add_resource(QManager, '/queues/api/manage')
 
 
 if __name__ == '__main__':
+    # create thread for saving queues after timer
+    daemon = Thread(target=save_queues, args=(active_queues, timer, ), daemon=True, name='Background')
+    daemon.start()
+
     app.run(debug=True, port=7500)

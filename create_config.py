@@ -10,6 +10,7 @@ config_file.read("config.ini")
 config_file.add_section("QueueSettings")
 # ADD SETTINGS TO FTPSettings SECTION
 config_file.set("QueueSettings", "maxQlength", "8")
+config_file.set("QueueSettings", "timer", "30")
 
 # SAVE CONFIG FILE
 with open(r"config.ini", 'w') as configfileObj:
