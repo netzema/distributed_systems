@@ -1,3 +1,4 @@
+# **Distributed Systems SS22 - Daniel Netzl & Henrik Sainio**
 ## **Assignment 2: Service Oriented Architectures**
 **Web services and REST**
 
