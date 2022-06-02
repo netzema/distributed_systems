@@ -10,6 +10,45 @@ api = Api(app)
 
 timeseries = create_time_series(100,300)
 
+def process_calc(assets):
+    comm = MPI.COMM_WORLD
+    scatter_tasks = None
+
+    if comm.rank == 0:
+        tasks = [json.dumps({"parameter":asset}) for asset in assets]
+
+        scatter_tasks = [None] * comm.size
+        current_proc = 0
+        for task in tasks:
+            if scatter_tasks[current_proc] is None:
+                scatter_tasks[current_proc] = []
+            scatter_tasks[current_proc].append(task)
+            current_proc = (current_proc + 1) % comm.size
+
+    else:
+        tasks = None
+
+    units = comm.scatter(scatter_tasks, root=0)
+    predictions = []
+
+    if units is not None:
+        for unit in units:
+            asset = json.loads(unit)["parameter"]
+
+            model = linear_fit(timeseries[asset])
+            pred = predict_value(model, asset)
+
+            pred = [pred, comm.rank]
+            predictions.append(pred)
+
+    # gathering results
+    result = comm.gather(predictions, root=0)
+
+    return sum(result) / len(result)
+
+
+
+
 class Calculations(Resource):
     def get(self):
         # pull a job
@@ -26,10 +65,12 @@ class Calculations(Resource):
                 return {"success": False, "msg": f"Queue {loc} is empty."}
             job = q.pop(0) # pull job
             logger.info(f'Job {job} was pulled from queue {loc}.')
-            assets = job["assets"]
-            models = [linear_fit(timeseries[asset]) for asset in assets]
-            preds = [predict_value(models[assets.index(x)], x) for x in assets]
-            result = sum(preds)/len(preds)
+            j_id = list(job.keys())[0]
+            assets = job[j_id]["assets"]
+            result = process_calc(assets)
+            #models = [linear_fit(timeseries[asset]) for asset in assets]
+            #preds = [predict_value(models[assets.index(x)], x) for x in assets]
+            #result = sum(preds)/len(preds)
             return {"success": True, "msg": result}
         logger.info(f'Queue {loc} was attempted to be accessed but not found.')
         return {"success": False, "msg": f"Queue {loc} not found. Nr. of active queues is {len(active_queues)}."}
@@ -40,4 +81,4 @@ api.add_resource(Calculations, '/financials/api/calc')
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=7500)
+    app.run(debug=True, port=7600)

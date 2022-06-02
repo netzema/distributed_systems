@@ -106,7 +106,8 @@ while(True):
     if cmd[0] == "pull_job":
         l = len(get("http://localhost:7500/queues/api/manage").json()["msg"])
         q = int(input(f"Please enter queue index (0 - {l - 1}): "))
-        u = get('http://localhost:7500/financials/api/calc', data={"username": username, "token": tk, "queue": q}).json()
+        u = get('http://localhost:7600/financials/api/calc', data={"username": username, "token": tk, "queue": q}).json()
+
         if u["success"]:
             logging.info(f"User {username} pulled job from queue {q}")
         print(u["msg"])
