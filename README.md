@@ -46,3 +46,21 @@ and log in with created users and try out given commands with both admin account
 ### **4 Flask-RESTful**
 Flask-RESTful is an easy to use and lightweight framework in Python to build REST-APIs. The main building block of the package are resources which provide easy access to multiple HTTP methods just by defining methods on a resource. Additionally, one can easily implement multiple URLs to be routed to a resource by using the add_resource() method on the API object. Another advantage of Flask-RESTful is its thorough documentation which covers everything one needs to get started. 
 REST in general has several upsides over SOAP or GRPC. REST is flexible and uses simple verbs for its operations, which makes it simple to use and understand. JSON is the most common content type for REST data, which is straightforward to use, quite human readable and easy to debug. Other than the technical advantages, we also already gained some experience with Flask back in the Programming II course in the second semester.
+
+## **Assignment 3: Message Queues**
+
+### **1 Queuing Service**
+The queueing service takes care of managing incoming jobs. Jobs are added to queues, where managers and admins can pull jobs from. This way, several employees can pull from different queues and several jobs can be done simultaneously. 
+
+Please run auth.py, masterdata.py and queueing.py before running the test script testing.py.
+
+#### **Resources**
+**Queue**
+The Queue Resource handles pushing and pulling jobs to/from a given queue. Make sure you start all three APIs before trying to edit queues. Login (e.g., using the given testing.py file) with a manager or admin role start pushing to the queue with *add_job*. After giving the asset integers, the program asks for the queue you want to add the job to. After the job has been added to the queue, it is also stored in masterdata.json and will be stored in queues.json after a maximum of 30 seconds. This is done using periodical threading.
+
+*pull_job* will retrieve a job from a given queue by the first-in-first-out mechanism. The user will get all the information about the job for further processing. 
+
+**QManager**
+The QManager Resource has the task to get, create and delete queues. The *get_queues* command gives you information about all the currently existing queues and the jobs within them. The queues will also be displayed paired with their index, so the user has a better overview of the active queues.
+
+To add a new queue, the admin can use the *create_queue* command. This command does not need any further parameters, as the queue will be appended to the currently active queues. To delete a queue, use the *delete_queue* command and give the index of the queue you want to delete. After the queue is not active any longer, all the jobs it contained will be also deleted from masterdata.json.

@@ -1,6 +1,5 @@
 import configparser
 import create_config
-import logging
 from masterdata import *
 import os
 from requests import get
