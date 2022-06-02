@@ -2,7 +2,7 @@ import configparser
 import create_config
 from masterdata import *
 import os
-from requests import get
+from requests import get, delete
 from time import sleep
 from threading import Thread
 
@@ -37,6 +37,7 @@ def check_len(active_queues, location):
     if location >= len(active_queues):
         return False
     return True
+
 
 if os.path.isfile("data/queues.json"):
     # load queues from persistent storage
@@ -100,6 +101,19 @@ class Queue(Resource):
                 logger.info(f'Queue {loc} is empty.')
                 return {"success": False, "msg": f"Queue {loc} is empty."}
             job = q.pop(0) # pull job
+            logger.info(f'Job {job} was pulled from queue {loc}.')
+            return {"success": True, "msg": job}
+        logger.info(f'Queue {loc} was attempted to be accessed but not found.')
+        return {"success": False, "msg": f"Queue {loc} not found. Nr. of active queues is {len(active_queues)}."}
+
+    def delete(self):
+        loc = int(request.form["queue"])  # integer value indicating index of queue
+        if check_len(active_queues, loc):
+            q = active_queues[loc]  # get queue by index
+            if len(q) == 0:  # if queue is empty
+                logger.info(f'Queue {loc} is empty.')
+                return {"success": False, "msg": f"Queue {loc} is empty."}
+            job = q.pop(0)  # pull job
             logger.info(f'Job {job} was pulled from queue {loc}.')
             return {"success": True, "msg": job}
         logger.info(f'Queue {loc} was attempted to be accessed but not found.')

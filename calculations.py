@@ -42,7 +42,7 @@ def process_calc(assets):
             predictions.append(pred)
 
     # gathering results
-    result = comm.gather(predictions, root=0)
+    result = comm.gather(predictions, root=0)[0][0]
 
     return sum(result) / len(result)
 
@@ -57,6 +57,7 @@ class Calculations(Resource):
         if auth["success"] == False:
             return auth  # access denied
 
+
         loc = int(request.form["queue"]) # integer value indicating index of queue
         if check_len(active_queues, loc):
             q = active_queues[loc] # get queue by index
@@ -64,6 +65,8 @@ class Calculations(Resource):
                 logger.info(f'Queue {loc} is empty.')
                 return {"success": False, "msg": f"Queue {loc} is empty."}
             job = q.pop(0) # pull job
+            rm = delete('http://localhost:7500/queues/api/queue', data={"queue": loc}).json()
+            active_queues[loc] = q
             logger.info(f'Job {job} was pulled from queue {loc}.')
             j_id = list(job.keys())[0]
             assets = job[j_id]["assets"]
