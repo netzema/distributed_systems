@@ -13,6 +13,11 @@ def create_config_file():
     config_file.set("QueueSettings", "maxQlength", "8")
     config_file.set("QueueSettings", "timer", "30")
 
+    # ADD NEW SECTION
+    config_file.add_section("Processors")
+    # ADD SETTINGS TO FTPSettings SECTION
+    config_file.set("Processors", "n_proc", "5")
+
     # SAVE CONFIG FILE
     with open(r"config.ini", 'w') as configfileObj:
         config_file.write(configfileObj)

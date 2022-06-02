@@ -2,7 +2,7 @@ import configparser
 import create_config
 from masterdata import *
 import os
-from requests import get, delete
+from requests import get
 from time import sleep
 from threading import Thread
 
@@ -48,6 +48,7 @@ else:
     default_queue = []
     active_queues = [default_queue]
 
+results_queue = []
 
 class Queue(Resource):
     def post(self):
@@ -77,6 +78,7 @@ class Queue(Resource):
                 _, job_id = write_json(job_info)
                 # add job and its index to queue
                 q.append({job_id: job_info}) # store job_id
+                #active_queues[loc]=q
                 logger.info(f'Job {job_id} added to queue {loc}.')
                 return {"success": True, "msg": f"Job {job_id} successfully added to queue {loc}."}
 
@@ -118,6 +120,12 @@ class Queue(Resource):
             return {"success": True, "msg": job}
         logger.info(f'Queue {loc} was attempted to be accessed but not found.')
         return {"success": False, "msg": f"Queue {loc} not found. Nr. of active queues is {len(active_queues)}."}
+
+    def put(self):
+        # add a new result
+        results_queue.append({request.form["job_id"]: request.form["result"]})
+        return {"success": True, "msg": results_queue}
+
 
 class QManager(Resource):
     def get(self):
