@@ -1,10 +1,18 @@
+import configparser
 from mpi4py import MPI
 from queueing import *
 from requests import delete, put
+import sys
 from timeseries import *
 
 logging.basicConfig(filename='calculations_logs.log', format='%(asctime)s %(message)s', filemode='a+', level=logging.INFO)
 logger = logging.getLogger()
+
+# get configurations from config file
+config_file = configparser.ConfigParser()
+# read config file
+config_file.read("config.ini")
+n_proc = int(config_file['Processors']["n_proc"])
 
 app = Flask(__name__)
 api = Api(app)
@@ -13,12 +21,6 @@ timeseries = create_time_series(100,300)
 if not os.path.isfile("config.ini"):
     # if config file does not exist, create it
     create_config.create_config_file()
-
-# get configurations from config file
-config_file = configparser.ConfigParser()
-# read config file
-config_file.read("config.ini")
-n_proc = int(config_file['Processors']["n_proc"])
 
 def process_calc(assets):
     comm = MPI.COMM_WORLD
@@ -67,7 +69,7 @@ class Calculations(Resource):
         if auth["success"] == False:
             return auth  # access denied
         results = []
-        for i in range(n_proc):
+        while True:
             u = get('http://localhost:7500/queues/api/manage').json()
             active_queues = u["msg"]
             loc = int(request.form["queue"]) # integer value indicating index of queue
