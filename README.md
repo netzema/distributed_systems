@@ -64,3 +64,21 @@ The Queue Resource handles pushing and pulling jobs to/from a given queue. Make 
 The QManager Resource has the task to get, create and delete queues. The *get_queues* command gives you information about all the currently existing queues and the jobs within them. The queues will also be displayed paired with their index, so the user has a better overview of the active queues.
 
 To add a new queue, the admin can use the *create_queue* command. This command does not need any further parameters, as the queue will be appended to the currently active queues. To delete a queue, use the *delete_queue* command and give the index of the queue you want to delete. After the queue is not active any longer, all the jobs it contained will be also deleted from masterdata.json.
+
+
+## **Assignment 4: High Performance Computing - Message Passing Interface (MPI)**
+
+### **1 Financial Calculations Service**
+The final service is in charge of performing timeseries forecasting computations with the assets available.
+
+The service will generate 100 random 300-steps timeseries and fit a linear regression model on the timeseries using the specified assets' index.
+
+The value of the assets after the next time step is forecasted using these models. The *process_calc* function, which is called by the Calculations Resource's *pull_job* method, does all these calculations.
+#### **Resources**
+**Calculations**
+After implementing a queuing service for handling jobs, the Calculation Service takes care of efficiently retrieving jobs from the queue(s).
+From each job, the assets passed to the above-mentioned forecasting model calculations while being scattered to different MPI processors.
+The service will take a job form a given queue until it is empty and return all results at once in the end.
+
+The mpiexec.py file was meant to execute the calculations.py file to configure the number of processes given in the config.ini file.
+
